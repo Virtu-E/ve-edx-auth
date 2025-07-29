@@ -61,7 +61,8 @@ fetch('api/v1/vault/user/token/', {
         'X-CSRFToken': getCookie('csrftoken')  // Django CSRF token
     },
     body: JSON.stringify({
-        'username': 'your_username'
+        'username': 'your_username',
+        'root-url' : "https://vault.virtueducate.edly.io/"
     })
 })
 .then(response => response.json())
