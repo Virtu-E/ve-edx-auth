@@ -16,11 +16,10 @@ def get_user_token_proxy(request):
     """
     try:
         # Get the requesting root URL
-        root_url = f"{request.scheme}://{request.get_host()}"
-        # This will give you something like: "http://localhost:8000" or "https://yourdomain.com"
 
         request_data = json.loads(request.body)
         username = request_data.get('username')
+        root_url = request_data.get('root_url')
 
         if not username:
             return JsonResponse({
