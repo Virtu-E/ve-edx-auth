@@ -7,7 +7,7 @@ os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 setup(
     name='ve-edx-auth',
-    version='0.0.1',
+    version='0.0.7',
     packages=find_packages(),
     include_package_data=True,
     description='An Edx app to get users token from Edu Vault backend',
@@ -19,7 +19,7 @@ setup(
     ],
     entry_points={
         'lms.djangoapp': [
-            've_edx_vault = ve_edx_vault.apps:CatalogMetadataConfig',
+            've_edx_vault = ve_edx_vault.apps:EdxAuthApp',
         ],
     },
     classifiers=[

@@ -12,15 +12,12 @@ except ImportError:
 
 
 # Import views
-from ve_edx_vault.views import api
+from .. import api
+
 
 app_name = 've_edx_vault'
 
 urlpatterns = [
-    path(
-        r'^user/token?$',
-        api.create_full_course,
-        name="user-access-token",
-    ),
+    path('user/token/', api.get_user_token_proxy, name='get_user_token_proxy'),
 
 ]
