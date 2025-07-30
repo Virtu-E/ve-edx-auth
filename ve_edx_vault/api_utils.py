@@ -51,7 +51,7 @@ def create_edx_api_client(
     Args:
         api_client_id: OAuth client ID for authentication
         api_client_secret: OAuth client secret for authentication
-        root_url: Base URL for the edX instance (e.g., "http://localhost:8000")
+        root_url: Base URL for the edu vault instance (e.g., "http://localhost:8000")
 
     Returns:
         Configured OAuth API client for making authenticated requests
@@ -71,7 +71,7 @@ def get_oauth_token(root_url: str) -> str:
     Get OAuth token from /api/v1/oauth/token/ endpoint.
 
     Args:
-        root_url: Base URL for the edX instance (e.g., "http://localhost:8000")
+        root_url: Base URL for the edu vault instance (e.g., "http://localhost:8000")
 
     Returns:
         OAuth access token

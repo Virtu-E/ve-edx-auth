@@ -5,6 +5,8 @@ from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
+from django.conf import settings
+
 
 from .api_utils import (
     get_user_access_token,
@@ -51,7 +53,7 @@ def get_user_token_proxy(request):
             request_data = json.loads(request.body)
 
         username = request.user.username
-        root_url = request_data.get('root_url')
+        root_url = getattr(settings, "EDU_VAULT_ROOT_URL", None)
 
         if not username:
             return JsonResponse({
@@ -60,7 +62,7 @@ def get_user_token_proxy(request):
 
         if not root_url:
             return JsonResponse({
-                'error': 'Root URL is required'
+                'error': 'EDU_VAULT_ROOT_URL is required, please configure it in django settings'
             }, status=400)
 
         user_token = get_user_access_token(username=username, root_url=root_url)
