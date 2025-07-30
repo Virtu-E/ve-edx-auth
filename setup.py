@@ -7,7 +7,7 @@ os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 setup(
     name='ve-edx-auth',
-    version='2.0.0',
+    version='2.0.1',
     packages=find_packages(),
     include_package_data=True,
     description='An Edx app to get users token from Edu Vault backend',

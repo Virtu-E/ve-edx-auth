@@ -37,17 +37,7 @@ def get_user_token_proxy(request):
     """
     try:
         log.info("Request content type: %s", request.content_type)
-        log.info("Request body: %s", request.body)
 
-        if not request.body:
-            return JsonResponse({
-                'error': 'Request body is empty'
-            }, status=400)
-
-        try:
-            request_data = json.loads(request.body.decode('utf-8'))
-        except UnicodeDecodeError:
-            request_data = json.loads(request.body)
 
         username = request.user.username
         root_url = getattr(settings, "EDU_VAULT_ROOT_URL", None)
@@ -66,12 +56,6 @@ def get_user_token_proxy(request):
 
         log.info("Successfully retrieved user token for username: %s", username)
         return JsonResponse(user_token)
-
-    except json.JSONDecodeError as e:
-        log.warning("Invalid JSON in request body: %s. Request body was: %s", str(e), request.body)
-        return JsonResponse({
-            'error': f'Invalid JSON in request body: {str(e)}'
-        }, status=400)
 
     except ValueError as e:
         log.warning("Validation error: %s", str(e))
