@@ -10,9 +10,8 @@ def root(*args):
 
 USE_TZ = True
 
-INSTALLED_APPS = (
-    've_edx_vault',
-)
+INSTALLED_APPS = ("ve_edx_vault",)
+
 
 def plugin_settings(settings):  # pylint: disable=unused-argument
     """
