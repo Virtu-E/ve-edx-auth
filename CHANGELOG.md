@@ -4,6 +4,22 @@ All notable changes to VE-EDX-Auth will be documented in this file.
 
 ## [Unreleased]
 
+## [2.0.2] - 2025-07-30
+
+### Added
+- Complete EdX user details forwarding to edu vault backend
+- TypedDict definitions for EdxUserDetails and TokenResponse
+- Enhanced user data including full name, email, first name, and last name
+
+### Changed
+- User token endpoint now passes comprehensive user details to edu vault
+- Improved type safety with structured data types
+- Updated function signatures to use TypedDict annotations
+
+### Improved
+- Better code documentation and type hints
+- Enhanced developer experience with autocomplete support
+
 ## [2.0.1] - 2025-07-30
 
 ### Removed
@@ -43,6 +59,7 @@ All notable changes to VE-EDX-Auth will be documented in this file.
 
 ## Security Notice
 
+v2.0.2 enhances user data integration with edu vault backend.
 v2.0.1 improves security by removing request body logging and simplifying the endpoint.
 v2.0.0 fixes a critical URL injection vulnerability. Immediate upgrade recommended.
 
