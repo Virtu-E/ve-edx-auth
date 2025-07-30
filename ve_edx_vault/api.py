@@ -6,6 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
+from .models import EdxUserDetails
 
 
 from .api_utils import (
@@ -17,6 +18,8 @@ from .api_utils import (
 )
 
 log = logging.getLogger(__name__)
+
+
 
 
 @login_required
@@ -52,7 +55,16 @@ def get_user_token_proxy(request):
                 'error': 'EDU_VAULT_ROOT_URL is required, please configure it in django settings'
             }, status=400)
 
-        user_token = get_user_access_token(username=username, root_url=root_url)
+        user_details: EdxUserDetails = {
+            'username': username,
+            "user_id": request.user.id,
+            "full_name": request.user.get_full_name(),
+            "email": request.user.email,
+            "first_name": request.user.first_name,
+            "last_name": request.user.last_name,
+        }
+
+        user_token = get_user_access_token(username=username, root_url=root_url, user_details=user_details)
 
         log.info("Successfully retrieved user token for username: %s", username)
         return JsonResponse(user_token)

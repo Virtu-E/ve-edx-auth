@@ -10,7 +10,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from oauth2_provider.models import Application
 from requests.exceptions import HTTPError, RequestException
 from edx_rest_api_client.client import OAuthAPIClient
-
+from .models import EdxUserDetails, TokenResponse
 import requests
 from urllib.parse import urljoin
 
@@ -65,7 +65,7 @@ def create_edx_api_client(
     return OAuthAPIClient(root_url, api_client_id, api_client_secret)
 
 
-def get_oauth_token(root_url: str) -> str:
+def get_oauth_token(*,root_url: str) -> str:
     """
     Get OAuth token from /api/v1/oauth/token/ endpoint.
 
@@ -142,87 +142,95 @@ def get_oauth_token(root_url: str) -> str:
         log.error("Unexpected error while getting OAuth token: %s", str(exc))
         raise OAuthTokenError(f"Unexpected error while getting OAuth token: {exc}") from exc
 
+def get_user_access_token(username: str, root_url: str, user_details: EdxUserDetails) -> TokenResponse:
+        """
+        Get user access token from /api/v1/auth/edx_user/token using OAuth token.
 
-def get_user_access_token(username: str, root_url: str) -> Dict[str, Any]:
-    """
-    Get user access token from /api/v1/auth/edx_user/token using OAuth token.
+        This function first obtains an OAuth token, then uses it to request a user-specific
+        access token from the edu vault API, passing along the complete user details from EdX.
 
-    This function first obtains an OAuth token, then uses it to request a user-specific
-    access token from the edu vault API.
+        Args:
+            username: Username for which to get the access token
+            root_url: Base URL for the edu Vault instance (e.g., "http://localhost:8000")
+            user_details: Complete user information from EdX including:
+                - username: User's username
+                - user_id: EdX user ID
+                - full_name: User's full name
+                - email: User's email address
+                - first_name: User's first name
+                - last_name: User's last name
 
-    Args:
-        username: Username for which to get the access token
-        root_url: Base URL for the edX instance (e.g., "http://localhost:8000")
+        Returns:
+            TokenResponse : dictionary containing authentication token and expiry date
 
-    Returns:
-        User token data dictionary
+        Raises:
+            ValueError: If username, root_url, or user_details is empty or None
+            OAuthClientNotFoundError: If OAuth client is not found
+            OAuthTokenError: If OAuth token request fails
+            UserTokenError: If user token request fails
+            EduVaultError: If edu vault service is unavailable
+        """
+        if not username:
+            raise ValueError("username is required")
+        if not root_url:
+            raise ValueError("root_url is required")
 
-    Raises:
-        ValueError: If username or root_url is empty or None
-        OAuthClientNotFoundError: If OAuth client is not found
-        OAuthTokenError: If OAuth token request fails
-        UserTokenError: If user token request fails
-    """
-    if not username:
-        raise ValueError("username is required")
-    if not root_url:
-        raise ValueError("root_url is required")
+        log.info("Requesting user access token for username: %s", username)
 
-    log.info("Requesting user access token for username: %s", username)
+        oauth_token = get_oauth_token(root_url=root_url)
 
-    oauth_token = get_oauth_token(root_url)
+        headers = {
+            'Authorization': f'Bearer {oauth_token}',
+            'Content-Type': 'application/json'
+        }
+        payload = user_details
+        user_token_url = f"{root_url}/api/v1/auth/edx_user/token"
 
-    headers = {
-        'Authorization': f'Bearer {oauth_token}',
-        'Content-Type': 'application/json'
-    }
-    payload = {"username": username}
-    user_token_url = f"{root_url}/api/v1/auth/edx_user/token"
+        log.debug("Making user token request to: %s", user_token_url)
 
-    log.debug("Making user token request to: %s", user_token_url)
-
-    try:
-        response = requests.post(user_token_url, headers=headers, json=payload, timeout=30)
-        response.raise_for_status()
-
-        user_token = response.json()
-        log.info("Successfully obtained user access token for username: %s", username)
-        return user_token
-
-    except HTTPError as exc:
-        log.error(
-            "HTTP error while getting user access token -- username: %s, status: %s, content: %s",
-            username,
-            exc.response.status_code,
-            exc.response.content
-        )
         try:
-            error_data = exc.response.json()
-            error_msg = error_data.get('error_description', str(exc))
-        except (json.JSONDecodeError, AttributeError):
-            error_msg = str(exc)
+            response = requests.post(user_token_url, headers=headers, json=payload, timeout=30)
+            response.raise_for_status()
 
-        raise UserTokenError(
-            f"Failed to get user access token for '{username}': {error_msg}"
-        ) from exc
+            user_token = response.json()
+            log.info("Successfully obtained user access token for username: %s", username)
+            return user_token
 
-    except RequestException as exc:
-        log.error(
-            "Request error while getting user access token for username %s: %s",
-            username,
-            str(exc)
-        )
-        raise UserTokenError(
-            f"Network error while getting user access token for '{username}': {exc}"
-        ) from exc
+        except HTTPError as exc:
+            log.error(
+                "HTTP error while getting user access token -- username: %s, status: %s, content: %s",
+                username,
+                exc.response.status_code,
+                exc.response.content
+            )
+            try:
+                error_data = exc.response.json()
+                error_msg = error_data.get('error_description', str(exc))
+            except (json.JSONDecodeError, AttributeError):
+                error_msg = str(exc)
 
-    except Exception as exc:
-        log.error(
-            "Unexpected error while getting user access token for username %s: %s",
-            username,
-            str(exc)
-        )
-        raise UserTokenError(
-            f"Unexpected error while getting user access token for '{username}': {exc}"
-        ) from exc
+            raise UserTokenError(
+                f"Failed to get user access token for '{username}': {error_msg}"
+            ) from exc
+
+        except RequestException as exc:
+            log.error(
+                "Request error while getting user access token for username %s: %s",
+                username,
+                str(exc)
+            )
+            raise UserTokenError(
+                f"Network error while getting user access token for '{username}': {exc}"
+            ) from exc
+
+        except Exception as exc:
+            log.error(
+                "Unexpected error while getting user access token for username %s: %s",
+                username,
+                str(exc)
+            )
+            raise UserTokenError(
+                f"Unexpected error while getting user access token for '{username}': {exc}"
+            ) from exc
+
 
