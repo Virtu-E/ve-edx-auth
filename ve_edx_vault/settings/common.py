@@ -16,6 +16,6 @@ INSTALLED_APPS = (
 
 def plugin_settings(settings):  # pylint: disable=unused-argument
     """
-    Defines ibl_request_router-specific settings when app is used as a plugin to edx-platform.
+    Defines request_router-specific settings when app is used as a plugin to edx-platform.
     """
     pass

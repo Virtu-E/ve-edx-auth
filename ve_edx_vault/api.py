@@ -36,17 +36,14 @@ def get_user_token_proxy(request):
         JsonResponse: User token data or error response
     """
     try:
-        # Debug logging
         log.info("Request content type: %s", request.content_type)
         log.info("Request body: %s", request.body)
 
-        # Check if request body is empty
         if not request.body:
             return JsonResponse({
                 'error': 'Request body is empty'
             }, status=400)
 
-        # Parse request data
         try:
             request_data = json.loads(request.body.decode('utf-8'))
         except UnicodeDecodeError:

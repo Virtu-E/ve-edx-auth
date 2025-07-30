@@ -16,7 +16,6 @@ from urllib.parse import urljoin
 
 log = logging.getLogger(__name__)
 
-# Constants
 EDU_VAULT_USER_TOKEN_CLIENT_NAME = "edu-vault-user-token-client"
 
 
